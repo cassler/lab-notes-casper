@@ -45,7 +45,7 @@ jobs:
         with:
           api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
           api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
-          file: lab-notes-casper.zip
+          file: dist/lab-notes-casper.zip
           # absolute path: /home/runner/work/containous.website/containous.website/dist.zip
 
           #api-url: ${{ secrets.STAGING_GHOST_ADMIN_API_URL }}
