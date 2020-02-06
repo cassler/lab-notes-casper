@@ -22,10 +22,6 @@ jobs:
         with:
           node-version: 8.11.1
       - run: npm install
-      - name: Test theme
-        env:
-          NODE_ENV: production
-        run: gscan --fatal --verbose .
       - name: Build theme
         env:
           NODE_ENV: production
