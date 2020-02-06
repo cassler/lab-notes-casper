@@ -1,34 +1,54 @@
-name: Deploy Theme
+# https://github.com/marketplace/actions/deploy-ghost-theme
+# https://github.com/TryGhost/action-deploy-theme/issues/1#issuecomment-571826299
+
+name: staging ==> Deploy Ghost Theme
+
+# on push because I'm testing the CI itself.
+# once stable, we will set this up to only pull_request
 on:
   push:
     branches:
-      - master
+      - master*
+      - ghostv3-staging
+      - ghostv3-prod
+  pull_request:
+    branches:
+      - ghostv3*
+      - ghostv3-staging
+      - ghostv3-prod
+
 jobs:
-  deploy:
+
+  job1:
+    name: Job 1 of 1
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@master
-      - name: Cache node modules
-        uses: actions/cache@v1
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
         with:
-          path: node_modules
-          key: ${{ runner.OS }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-build-${{ env.cache-name }}-
-            ${{ runner.OS }}-build-
-            ${{ runner.OS }}-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: 8.11.1
-      - run: npm install
+          node-version: '10.15.1'
+
       - name: Build theme
-        env:
-          NODE_ENV: production
-        run: gulp build
-      - name: Deploy Ghost Theme
-        uses: TryGhost/action-deploy-theme@v1.2.0
+        run: |
+          npm install gulp-cli -g
+          npm install
+          npm install --global gscan@latest
+          gscan --fatal --verbose $GITHUB_WORKSPACE
+          gulp build
+          zip -r dist.zip dist
+          echo; pwd; echo; ls -AlhF; echo; du -sh *; echo; du -sh;
+
+      # https://github.com/TryGhost/action-deploy-theme
+      - name: Deploy Ghost Theme to our STAGING instance
+        #uses: TryGhost/action-deploy-theme@v1.2.0
+        uses: vikaspotluri123/action-deploy-theme@master
         with:
           api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
           api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
-          theme-name: lab-notes
+          file: dist.zip
+          # absolute path: /home/runner/work/containous.website/containous.website/dist.zip
+
+          #api-url: ${{ secrets.STAGING_GHOST_ADMIN_API_URL }}
+          #api-key: ${{ secrets.STAGING_GHOST_ADMIN_API_KEY }}
+          #api-url: ${{ secrets.PRODUCTION_GHOST_ADMIN_API_URL }}
+          #api-key: ${{ secrets.PRODUCTION_GHOST_ADMIN_API_KEY }}
